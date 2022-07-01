@@ -1,0 +1,200 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>員工管理系統</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const apiurl = "http://localhost:24139/api/TEmployees";
+            function loadData() {
+                $.ajax({
+                    url: apiurl,
+                    type: 'GET',
+                    success: function (data) {
+                        $('#tableShow').empty();
+                        $('#tableShow').append
+                            ("<tr><th>編號</th><th>姓名</th><th>性別</th><th>信箱</th><th>薪資</th><th></th></tr>");
+                        for (var i = 0; i < data.length; i++) {
+                            $("#tableShow").append(
+                                `<tr>
+                                    <td>${data[i].fEmpId}</td>
+                                    <td>${data[i].fName}</td>
+                                    <td>${data[i].fGender}</td>
+                                    <td>${data[i].fMail}</td>
+                                    <td>${data[i].fSalary}</td>
+                                    <td>
+                                        <input type='button' value = '選取' id ='btnSelect${i}'  class = 'btn btn-info'>
+                                    </td>
+                                </tr>
+                                `);
+                            $("#btnSelect" + i)
+                                .on("click", { fEmpId: data[i].fEmpId },
+                                    selectItem)
+                        }
+                        $('#fEmpId').val("");
+                        $('#fName').val("");
+                        $('#fGender').val("");
+                        $('#fMail').val("");
+                        $('#fSalary').val("");
+                    }
+                });
+            }
+            function selectItem(event) {
+                var fEmpId = event.data.fEmpId;
+                $.ajax({
+                    url: apiurl + "/" + encodeURI(fEmpId),
+                    type: 'GET',
+                    success: function (data) {
+                        $('#fEmpId').val(data.fEmpId);
+                        $('#fName').val(data.fName);
+                        $('#fGender').val(data.fGender);
+                        $('#fMail').val(data.fMail);
+                        $('#fSalary').val(data.fSalary);
+                    }
+                });
+            }
+            function createData() {
+                var empid, name, gender, mail,salary;
+                empid = $('#fEmpId').val();
+                name = $('#fName').val();
+                gender = $('#fGender').val();
+                mail = $('#fMail').val();
+                salary = $('#fSalary').val();
+                if (empid == "") {
+                    alert("編號不能空白");
+                    return;
+                }
+                var customer = JSON.stringify({
+                    fEmpId: empid,
+                    fName: name,
+                    fGender: gender,
+                    fMail: mail,
+                    fSalary: salary
+                })
+                $.ajax({
+                    url: apiurl,
+                    type: 'POST',
+                    data: customer,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (result) {
+                        if (result != 0) {
+                            alert("新增成功");
+                            loadData();
+                        }
+                        else {
+                            alert("新增失敗");
+                        }
+                    }
+                });              
+            }
+            function deleteData() {
+                var confirmDelete = confirm("確定刪除嗎?");
+                if (confirmDelete) {
+                    var empid = $('#fEmpId').val();
+                    $.ajax({
+                        url: apiurl + "/" + encodeURI(empid),
+                        type: 'DELETE',
+                        success: function (result) {
+                            if (result != 0) {
+                                alert("刪除成功");
+                                loadData();
+                            }
+                            else {
+                                alert("刪除失敗");
+                            }
+                        }
+                    });
+                }
+            }
+            function editData() {
+                var confirmDelete = confirm("確定修改嗎?");
+                if (confirmDelete) {
+                    var empid, name, gender, mail, salary;
+                    empid = $('#fEmpId').val();
+                    name = $('#fName').val();
+                    gender = $('#fGender').val();
+                    mail = $('#fMail').val();
+                    salary = $('#fSalary').val();
+                    if (empid == "") {
+                        alert("編號不能空白");
+                        return;
+                    }
+                    var customer = JSON.stringify({
+                        fEmpId: empid,
+                        fName: name,
+                        fGender: gender,
+                        fMail: mail,
+                        fSalary : salary
+                    })
+                    $.ajax({
+                        url: apiurl,
+                        type: 'PUT',
+                        data: customer,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+                            if (result != 0) {
+                                alert("修改成功");
+                                loadData();
+                            }
+                            else {
+                                alert("修改失敗");
+                            }
+                        }
+                    });
+                }
+            }
+            $("#btnCreate").on("click", createData);
+            $("#btnDelete").on("click", deleteData);
+            $("#btnEdit").on("click", editData);
+            loadData();
+        })
+    </script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h4>員工管理</h4>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                員工管理
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="fEmpId">編號</label>
+                    <input type="text" class="form-control" id="fEmpId" />
+                </div>
+                <div class="form-group">
+                    <label for="fName">姓名</label>
+                    <input type="text" class="form-control" id="fName" />
+                </div>
+                <div class="form-group">
+                    <label for="fGender">性別</label>
+                    <input type="text" class="form-control" id="fGender" />
+                </div>
+                <div class="form-group">
+                    <label for="fMail">信箱</label>
+                    <input type="text" class="form-control" id="fMail" />
+                </div>
+                <div class="form-group">
+                    <label for="fMail">薪資</label>
+                    <input type="text" class="form-control" id="fSalary" />
+                </div>
+                <input type="button" value="新增" id="btnCreate" class="btn btn-primary" />
+                <input type="button" value="修改" id="btnEdit" class="btn btn-success" />
+                <input type="button" value="刪除" id="btnDelete" class="btn btn-danger" />
+            </div>
+        </div>
+        <table class="table table-hover" id="tableShow">
+        </table>
+
+    </div>
+</body>
+</html>
